@@ -229,7 +229,7 @@ func commonNetworkAttackFunc(options *core.NetworkCommand, chaos *chaosd.Server)
 
 func NewNetworkPortOccupiedCommand(dep fx.Option, options *core.NetworkCommand) *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "port",
+		Use:   "port",
 		Short: "attack network port",
 
 		Run: func(cmd *cobra.Command, args []string) {
@@ -239,6 +239,6 @@ func NewNetworkPortOccupiedCommand(dep fx.Option, options *core.NetworkCommand) 
 		},
 	}
 
-	cmd.Flags().StringVarP(&options.Port, "port","p","", "this specified port is to occupied")
+	cmd.Flags().StringVarP(&options.Port, "port", "p", "", "this specified port is to occupied")
 	return cmd
 }

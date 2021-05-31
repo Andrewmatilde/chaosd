@@ -24,11 +24,10 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/pingcap/log"
 	"go.uber.org/zap"
 
 	"github.com/pingcap/errors"
-
-	"github.com/pingcap/log"
 
 	"github.com/chaos-mesh/chaos-mesh/pkg/chaosdaemon/pb"
 
@@ -390,45 +389,44 @@ func (s *Server) applyPortOccupied(attack *core.NetworkCommand) error {
 		return nil
 	}
 
-	//todo:修改对已启用端口检测
-   //err, flag := checkPortIsListened(attack.Port)
-
-	checkStatement := fmt.Sprintf("array=lsof -i:%s | awk '{print $2}' | grep -v PID;echo ${array[@]}", attack.Port)
-	cmd := exec.Command("sh","-c", checkStatement)
-
-	output, err := cmd.Output()
-	fmt.Println(string(output))
-	return errors.WithStack(err)
-
-    if len(output) == 0  {
-		c := fmt.Sprintf("nc -l %s", attack.Port)
-		cmd1 := exec.Command("sh", "-c", c)
-
-		err := cmd1.Start()
-		if err != nil {
-			errors.WithStack(err)
+	flag, err := checkPortIsListened(attack.Port)
+	if err != nil {
+		if flag {
+			return errors.Errorf("port %s has been occupied", attack.Port)
 		}
-		fmt.Println("exec cmd success")
-		return nil
-	} else {
-		return errors.Errorf("port has been occupied", attack.Port)
+		return errors.WithStack(err)
 	}
 
+	if flag {
+		return errors.Errorf("port %s has been occupied", attack.Port)
+	}
+
+	c := fmt.Sprintf("nc -l %s", attack.Port)
+	cmd := exec.Command("sh", "-c", c)
+	err = cmd.Start()
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	return nil
 }
 
-func checkPortIsListened(port string) (error, bool) {
-	checkStatement := fmt.Sprintf("array=lsof -i:%s | awk '{print $2}' | grep -v PID;echo ${array[@]}", port)
-	cmd := exec.Command("sh","-c", checkStatement)
+func checkPortIsListened(port string) (bool, error) {
+	checkStatement := fmt.Sprintf("lsof -i:%s | awk '{print $2}' | grep -v PID", port)
+	cmd := exec.Command("sh", "-c", checkStatement)
 
-	output, err1 := cmd.Output()
-	if err1 != nil {
-		fmt.Println(err1)
-		return err1, false
+	stdout, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Error(cmd.String()+string(stdout), zap.Error(err))
+		if err.Error() == "exit status 1" && string(stdout) == "" {
+			return false, nil
+		}
+		return true, errors.WithStack(err)
 	}
-	if len(output) != 0 {
-		return nil, true
+
+	if string(stdout) == "" {
+		return false, nil
 	}
-	return nil, false
+	return true, nil
 }
 
 func (s *Server) recoverPortOccupied(attack *core.NetworkCommand, uid string) error {
@@ -437,9 +435,10 @@ func (s *Server) recoverPortOccupied(attack *core.NetworkCommand, uid string) er
 
 	cmd := exec.Command("sh", "-c", c)
 
-	err := cmd.Start()
+	stdout, err := cmd.CombinedOutput()
 	if err != nil {
-		errors.WithStack(err)
+		log.Error(cmd.String()+string(stdout), zap.Error(err))
+		return errors.WithStack(err)
 	}
 
 	return nil

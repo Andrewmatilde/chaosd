@@ -48,9 +48,9 @@ type NetworkCommand struct {
 	// only the packet which match the tcp flag can be accepted, others will be dropped.
 	// only set when the IPProtocol is tcp, used for partition.
 	AcceptTCPFlags string
-	DNSIp     string
-	DNSHost   string
-	Port      string
+	DNSIp          string
+	DNSHost        string
+	Port           string
 }
 
 var _ AttackConfig = &NetworkCommand{}
