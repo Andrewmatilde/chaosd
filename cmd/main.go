@@ -51,6 +51,8 @@ func init() {
 		search.NewSearchCommand(),
 		version.NewVersionCommand(),
 	)
+
+	utils.SetRuntimeEnv()
 }
 
 func setLog() {
