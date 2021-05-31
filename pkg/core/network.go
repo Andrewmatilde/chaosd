@@ -210,9 +210,7 @@ func (n *NetworkCommand) setDefaultForNetworkLoss() {
 }
 
 func (n *NetworkCommand) setDefaultForNetworkDNS() {
-	if len(n.DNSServer) == 0 {
-		n.DNSServer = "123.123.123.123"
-	}
+	return
 }
 
 func checkProtocolAndPorts(p string, sports string, dports string) error {
