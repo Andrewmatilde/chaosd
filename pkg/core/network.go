@@ -452,6 +452,10 @@ func (n *NetworkCommand) NeedApplyEtcHosts() bool {
 	return false
 }
 
+func (n *NetworkCommand) NeedApplyEtcResolv() bool {
+	return len(n.DNSServer) > 0
+}
+
 func NewNetworkCommand() *NetworkCommand {
 	return &NetworkCommand{
 		CommonAttackConfig: CommonAttackConfig{

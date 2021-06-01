@@ -52,7 +52,11 @@ func (networkAttack) Attack(options core.AttackConfig, env Environment) (err err
 			}
 		}
 
-		return env.Chaos.updateDNSServer(attack)
+		if attack.NeedApplyEtcResolv() {
+			if err = env.Chaos.updateDNSServer(attack); err != nil {
+				return errors.WithStack(err)
+			}
+		}
 	case core.NetworkPortOccupied:
 		return env.Chaos.applyPortOccupied(attack)
 
@@ -278,7 +282,12 @@ func (networkAttack) Recover(exp core.Experiment, env Environment) error {
 				return errors.WithStack(err)
 			}
 		}
-		return env.Chaos.recoverDNSServer(attack)
+
+		if attack.NeedApplyEtcResolv() {
+			if err = env.Chaos.recoverDNSServer(attack); err != nil {
+				return errors.WithStack(err)
+			}
+		}
 	case core.NetworkPortOccupied:
 		return env.Chaos.recoverPortOccupied(attack, env.AttackUid)
 	case core.NetworkDelayAction, core.NetworkLossAction, core.NetworkCorruptAction, core.NetworkDuplicateAction, core.NetworkPartitionAction:
