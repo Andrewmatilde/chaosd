@@ -18,7 +18,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"os"
+	//"os"
 	"os/exec"
 	"text/template"
 
@@ -195,7 +195,7 @@ func (j jvmAttack) Recover(exp core.Experiment, env Environment) error {
 		return err
 	}
 
-	defer os.Remove(tmpfile.Name()) // clean up
+	//defer os.Remove(tmpfile.Name()) // clean up
 
 	if _, err := tmpfile.Write(attack.RuleData); err != nil {
 		return err
@@ -205,7 +205,7 @@ func (j jvmAttack) Recover(exp core.Experiment, env Environment) error {
 		return err
 	}
 
-	log.Info("create btm file", zap.String("file", tmpfile.Name()))
+	log.Info("create btm file", zap.String("file", tmpfile.Name()), zap.String("data", string(attack.RuleData)))
 
 	bmSubmitCmd := fmt.Sprintf(bmSubmitCommand, attack.Port, "u", tmpfile.Name())
 	cmd := exec.Command("bash", "-c", bmSubmitCmd)
